@@ -6,23 +6,23 @@ function EmpLogin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
-//   const handleLogin = (e) => {
-//     e.preventDefault();
+  // const handleLogin = (e) => {
+  //   e.preventDefault();
 
-//     if (!email || !password) {
-//       setError("Both fields are required");
-//       return;
-//     }
+  //   if (!email || !password) {
+  //     setError("Both fields are required");
+  //     return;
+  //   }
 
-//     // Dummy authentication (replace with API call)
-//     if (email === "employee@example.com" && password === "password123") {
-//       navigate("/dashboard");
-//     } else {
-//       setError("Invalid email or password");
-//     }
-//   };
+  //   // Dummy authentication (replace with API call)
+  //   if (email === "employee@example.com" && password === "password123") {
+  //     navigate("/dashboard");
+  //   } else {
+  //     setError("Invalid email or password");
+  //   }
+  // };
   const handleLogin = async () => {
     setLoading(true);
     setError(null);
@@ -34,7 +34,7 @@ function EmpLogin() {
     };
 
     try {
-      const response = await fetch("http://72.167.143.107:1024 /api/tracker/account/login", {
+      const response = await fetch("http://72.167.143.107:1024/api/tracker/account/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
