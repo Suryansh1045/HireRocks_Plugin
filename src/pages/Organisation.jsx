@@ -64,7 +64,8 @@ function Organization() {
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-950  to-green-200  text-white flex items-center justify-center">
-      <div className="bg-white tempo text-black p-8 rounded-lg w-[85%] h-[90vh] shadow-lg ">
+      <div className="bg-white relative tempo text-black p-8 rounded-lg w-[85%] h-[90vh] shadow-lg ">
+        {/* <h2 className="absolute ml-[40%] text-center text-[40px] text-green-700">HireRocks</h2> */}
         {/* Step 1: Organization Input for Viewing */}
         {step === 1 && !createMode && (
           <div className="flex justify-center items-center w-full h-full">
@@ -83,7 +84,7 @@ function Organization() {
                 />
 
                 <input
-                  type="text"
+                  type="password"
                   value={organizationPass}
                   onChange={(e) => setOrganizationPass(e.target.value)}
                   className="w-full p-3 mt-4 rounded-md border border-gray-300 text-gray-800 outline-none focus:ring-2 focus:ring-green-500"
@@ -141,7 +142,7 @@ function Organization() {
               />
 
               <input
-                type="text"
+                type="password"
                 value={organizationPass}
                 onChange={(e) => setOrganizationPass(e.target.value)}
                 className="w-full p-3 mt-4 rounded-md border border-gray-300 text-gray-800 outline-none"
