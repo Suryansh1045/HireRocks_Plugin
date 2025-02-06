@@ -1,0 +1,52 @@
+{
+    "headers": [
+      {
+        "source": "/(.*)",
+        "headers": [
+          {
+            "key": "Content-Security-Policy",
+            "value": "default-src 'self'; frame-ancestors 'self' https://*.zoho.com https://*.zoho.eu https://*.zoho.in https://*.zoho.com.cn https://*.zoho.com.au;"
+          },
+          {
+            "key": "X-Frame-Options",
+            "value": "ALLOW-FROM https://*.zoho.com https://*.zoho.eu https://*.zoho.in https://*.zoho.com.cn https://*.zoho.com.au"
+          },
+          {
+            "key": "Access-Control-Allow-Origin",
+            "value": "*" 
+          },
+          {
+            "key": "Access-Control-Allow-Methods",
+            "value": "GET, POST, OPTIONS"
+          }
+        ]
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/(.*)",
+        "has": [
+          {
+            "type": "header",
+            "key": "referer",
+            "value": "^(?!.*zoho).*"
+          }
+        ],
+        "destination": "/access-denied",
+        "statusCode": 403
+      },
+      {
+        "source": "/(.*)",
+        "has": [
+          {
+            "type": "header",
+            "key": "origin",
+            "value": "^(?!.*zoho).*"
+          }
+        ],
+        "destination": "/access-denied",
+        "statusCode": 403
+      }
+    ]
+  }
+  
