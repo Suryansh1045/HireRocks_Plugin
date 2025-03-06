@@ -158,28 +158,6 @@ function Organization() {
           </div>
         )}
 
-        {/* Step 2: Enter Email */}
-        {/* {createMode && step === 2 && (
-          <div className="space-y-6 w-[350px]">
-            <label className="block text-lg font-bold text-gray-700">
-              Enter Your Email
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full p-3 rounded-md border border-gray-300 text-gray-800 outline-none"
-              placeholder="Email Address"
-            />
-            <button
-              onClick={handleNextStep}
-              className="w-full bg-green-500 hover:bg-green-700 text-white py-2 rounded-md"
-            >
-              Next
-            </button>
-          </div>
-        )} */}
-
         {/* Step 3: Enter OTP */}
         {createMode && step === 2 && (
           <div className="w-full h-full flex justify-center items-center">
