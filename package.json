@@ -2,6 +2,7 @@
   "name": "hirerocks-plugin",
   "version": "0.1.0",
   "private": true,
+  "proxy": "http://72.167.143.107:1024",
   "dependencies": {
     "antd": "^5.23.2",
     "axios": "^1.7.9",
@@ -10,7 +11,8 @@
     "react-datepicker": "^7.6.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1",
-    "react-scripts": "5.0.1"
+    "react-scripts": "5.0.1",
+    "react-toastify": "^11.0.5"
   },
   "scripts": {
     "start": "react-scripts start",
