@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EmpLogin from "../components/EmpLogin";
 import axios from "axios";
+import { useEffect } from "react";
+import "@salesforce/canvas-js-sdk";
 
 function Organization() {
   const navigate = useNavigate();
@@ -16,10 +18,32 @@ function Organization() {
   const [LastName, setLastName] = useState("");
   const [employeeEmail, setEmployeeEmail] = useState("");
   const [errors, setErrors] = useState({}); // State to store validation errors
-  const [otpError, setotpError] =useState(false)
-  const [loading, setloading] =useState(false)
-  const [orgError, setorgError] = useState(false)
-  const[orgErrorMessage, setorgErrorMessage] = useState('') 
+  const [otpError, setotpError] = useState(false);
+  const [loading, setloading] = useState(false);
+  const [orgError, setorgError] = useState(false);
+  const [orgErrorMessage, setorgErrorMessage] = useState("");
+
+  const [context, setContext] = useState(null);
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    if (window.Sfdc && window.Sfdc.canvas) {
+      // processing the signed request
+      window.Sfdc.canvas.onReady(() => {
+        const signedRequest = window.Sfdc.canvas.oauth.token();
+        if (signedRequest) {
+          // ToDo (handle request)
+          setContext(signedRequest);
+        } else {
+          setContext("No signed request received");
+        }
+      });
+    } else {
+      console.error("Salesforce Canvas SDK not loaded.");
+      setContext("Salesforce Canvas SDK not loaded.");
+    }
+  }, []);
+
   // Handle View Click (Step 1 for Viewing Organization)
   const handleViewClick = () => {
     if (organizationName) {
@@ -41,21 +65,24 @@ function Organization() {
       alert("Please enter the OTP.");
       return;
     }
-    setotpError(false)
-    setloading(true)
+    setotpError(false);
+    setloading(true);
     try {
       // Step 1: Verify OTP
       const response = await axios.get(`/api/Account/VerifyEmailAddress`, {
         params: { emailVerificationCode: mailContent },
       });
-  
-      if (response.data?.SuccessMessage === "You email address is verified successfully") {
+
+      if (
+        response.data?.SuccessMessage ===
+        "You email address is verified successfully"
+      ) {
         alert(response.data.SuccessMessage); // Success message
-  
-        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        await new Promise((resolve) => setTimeout(resolve, 2000));
         // Extract username from email (before '@')
         const username = email.split("@")[0];
-  
+
         // Step 2: Log in the user
         const loginResponse = await axios.post(`/api/Account/Login`, {
           UserName: username,
@@ -69,35 +96,35 @@ function Organization() {
         }
 
         if (loginData.access_token) {
-          console.log(loginData.access_token)
-         
+          console.log(loginData.access_token);
+
           console.log("Access Token:", loginData.access_token);
           localStorage.setItem("access_token", loginData.access_token);
           alert("Login successful!");
           setStep(3); // Move to next step (employee addition)
-          setloading(false)
+          setloading(false);
         } else {
-          setloading(false)
+          setloading(false);
           alert("Login failed. Please try again.");
         }
       } else {
-        setloading(false)
-        setotpError(true)
+        setloading(false);
+        setotpError(true);
         alert("Invalid OTP. Please try again.");
       }
     } catch (error) {
-      setloading(false)
+      setloading(false);
       console.error("Error:", error);
       alert("Something went wrong. Please try again.");
     }
   };
-  
 
   // Handle Next Step
   const handleNextStep = async () => {
     let newErrors = {};
     if (step === 1) {
-      if (!organizationName.trim()) newErrors.organizationName = "Organization Name is required";
+      if (!organizationName.trim())
+        newErrors.organizationName = "Organization Name is required";
       if (!email.trim()) {
         newErrors.email = "Email is required";
       } else if (!/\S+@\S+\.\S+/.test(email)) {
@@ -111,102 +138,111 @@ function Organization() {
     } else if (step === 2 && !mailContent.trim()) {
       newErrors.mailContent = "OTP is required";
     }
-  
+
     // If errors exist, set them in state and stop execution
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
       return;
     }
-  
+
     setErrors({});
-      if (createMode && step === 1) {
-        // Step 1: Create Organization API Call
-        setloading(true);
-        setorgError(false)
-        try {
-          const response = await axios.post("/PostOrganization", {
-            Email: email,
-            Password: organizationPass,
-            OrganizationTitle: organizationName,
-            IsRegisterationSuccessFull: false,
-          });
-            console.log(response)
-          if (response.status == 200) {
-            alert("Organization created successfully! Please check your email for the OTP.");
-            setStep(step + 1); // Move to OTP verification step
-          } else{
-            alert("Organization creation failed. Please try again.");
-          }
-        } catch (error) {
-          console.error("Error creating organization:", error);
-          setorgError(true)
-        }finally {
-          setloading(false); // Set loading to false after the API call (success or failure)
+    if (createMode && step === 1) {
+      // Step 1: Create Organization API Call
+      setloading(true);
+      setorgError(false);
+      try {
+        const response = await axios.post("/PostOrganization", {
+          Email: email,
+          Password: organizationPass,
+          OrganizationTitle: organizationName,
+          IsRegisterationSuccessFull: false,
+        });
+        console.log(response);
+        if (response.status == 200) {
+          alert(
+            "Organization created successfully! Please check your email for the OTP."
+          );
+          setStep(step + 1); // Move to OTP verification step
+        } else {
+          alert("Organization creation failed. Please try again.");
         }
-      } else {
-        setStep(step + 1);
+      } catch (error) {
+        console.error("Error creating organization:", error);
+        setorgError(true);
+      } finally {
+        setloading(false); // Set loading to false after the API call (success or failure)
       }
+    } else {
+      setStep(step + 1);
+    }
     // }
   };
 
   // Handle Adding Employee
   const handleAddEmployee = async () => {
     if (FirstName && LastName && employeeEmail) {
-        // Create a new employee object
-        const newEmployee = {
-            FirstName,
-            LastName,
-            Email: employeeEmail,
-            IsRegisterationSuccessFull: false
-        };
+      // Create a new employee object
+      const newEmployee = {
+        FirstName,
+        LastName,
+        Email: employeeEmail,
+        IsRegisterationSuccessFull: false,
+      };
 
-        // Update state immediately
-        setEmployees([...employees, { FirstName, LastName, email: employeeEmail }]);
+      // Update state immediately
+      setEmployees([
+        ...employees,
+        { FirstName, LastName, email: employeeEmail },
+      ]);
 
-        // Clear input fields
-        setFirstName("");
-        setLastName("");
-        setEmployeeEmail("");
+      // Clear input fields
+      setFirstName("");
+      setLastName("");
+      setEmployeeEmail("");
 
-        // Get token from localStorage
-        const token = localStorage.getItem("access_token");
+      // Get token from localStorage
+      const token = localStorage.getItem("access_token");
 
-        if (!token) {
-            alert("Authentication failed. Please log in again.");
-            return;
+      if (!token) {
+        alert("Authentication failed. Please log in again.");
+        return;
+      }
+
+      try {
+        // Send API request to add employee
+        const response = await axios.post(
+          "/api/Account/AddWorker",
+          newEmployee,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+          }
+        );
+
+        if (response.status === 200) {
+          alert("Employee added successfully!");
+        } else {
+          alert("Failed to add employee.");
         }
-
-        try {
-            // Send API request to add employee
-            const response = await axios.post("/api/Account/AddWorker", newEmployee, {
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (response.status === 200) {
-                alert("Employee added successfully!");
-            } else {
-                alert("Failed to add employee.");
-            }
-        } catch (error) {
-            console.error("Error adding employee:", error);
-            alert("An error occurred while adding the employee.");
-        }
+      } catch (error) {
+        console.error("Error adding employee:", error);
+        alert("An error occurred while adding the employee.");
+      }
     } else {
-        alert("Please enter the employee's first name, last name, and email.");
+      alert("Please enter the employee's first name, last name, and email.");
     }
-};
+  };
 
   // Handle Done Button (Confirm Employee Addition)
   const handleDone = async () => {
     if (employees.length === 0) {
-        alert("No employees to add.");
-        return;
+      alert("No employees to add.");
+      return;
     }
     setStep(5);
-};
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-r from-green-950  to-green-200  text-white flex items-center justify-center">
@@ -271,50 +307,61 @@ function Organization() {
               <label className="block text-4xl font-bold text-gray-700 text-center">
                 Create Organization
               </label>
-              {orgError && <p className="text-red-500 text-sm">Name is already taken.</p>}
+              {orgError && (
+                <p className="text-red-500 text-sm">Name is already taken.</p>
+              )}
               <div>
-                  <input
-                    type="text"
-                    value={organizationName}
-                    onChange={(e) => setOrganizationName(e.target.value)}
-                    className="w-full p-3 rounded-md border border-gray-300 text-gray-800 outline-none"
-                    placeholder="Enter your Organization Name"
-                  />
-                  {errors.organizationName && <p className="text-red-500 text-sm">{errors.organizationName}</p>}
+                <input
+                  type="text"
+                  value={organizationName}
+                  onChange={(e) => setOrganizationName(e.target.value)}
+                  className="w-full p-3 rounded-md border border-gray-300 text-gray-800 outline-none"
+                  placeholder="Enter your Organization Name"
+                />
+                {errors.organizationName && (
+                  <p className="text-red-500 text-sm">
+                    {errors.organizationName}
+                  </p>
+                )}
               </div>
 
               <div>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="w-full p-3 rounded-md border border-gray-300 text-gray-800 outline-none"
-                    placeholder="Enter Your Email"
-                  />
-                  {errors.email && <p className="text-red-500 text-sm">{errors.email}</p>}
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  className="w-full p-3 rounded-md border border-gray-300 text-gray-800 outline-none"
+                  placeholder="Enter Your Email"
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm">{errors.email}</p>
+                )}
               </div>
 
               <div>
-                  <input
-                    type="password"
-                    value={organizationPass}
-                    onChange={(e) => setOrganizationPass(e.target.value)}
-                    className="w-full p-3 rounded-md border border-gray-300 text-gray-800 outline-none"
-                    placeholder="Enter Your Password"
-                  />
-                  {errors.organizationPass && <p className="text-red-500 text-sm">{errors.organizationPass}</p>}
+                <input
+                  type="password"
+                  value={organizationPass}
+                  onChange={(e) => setOrganizationPass(e.target.value)}
+                  className="w-full p-3 rounded-md border border-gray-300 text-gray-800 outline-none"
+                  placeholder="Enter Your Password"
+                />
+                {errors.organizationPass && (
+                  <p className="text-red-500 text-sm">
+                    {errors.organizationPass}
+                  </p>
+                )}
               </div>
               <button
                 onClick={handleNextStep}
                 className="w-full bg-green-500 hover:bg-green-700 text-white py-2 rounded-md"
               >
-               {loading?"loading.....":"Next"}
+                {loading ? "loading....." : "Next"}
               </button>
             </div>
           </div>
         )}
 
-        
         {createMode && step === 2 && (
           <div className="w-full h-full flex justify-center items-center">
             <div className="space-y-6 w-[450px]">
@@ -329,12 +376,14 @@ function Organization() {
                 className="w-full p-3 rounded-md border border-gray-300 text-gray-800"
                 placeholder="OTP"
               />
-              { otpError&&<p className="text-red-500 text-sm">Incorrect OTP</p> }
+              {otpError && (
+                <p className="text-red-500 text-sm">Incorrect OTP</p>
+              )}
               <button
                 onClick={verifyOTP}
                 className="w-full bg-green-500 hover:bg-green-700 text-white py-2 rounded-md"
               >
-                {loading?"loading.....":"Submit"}
+                {loading ? "loading....." : "Submit"}
               </button>
             </div>
           </div>
