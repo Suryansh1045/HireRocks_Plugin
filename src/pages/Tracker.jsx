@@ -106,7 +106,7 @@ function Tracker() {
         </div>
 
         {/* Search Button */}
-        <div className="flex items-center">
+        <div className="flex items-end">
           <Button type="primary" block onClick={handleSearch}>
             🔍 Search
           </Button>
