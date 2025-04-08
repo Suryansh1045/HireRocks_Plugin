@@ -19,7 +19,7 @@ function Organization() {
   const [employeeEmail, setEmployeeEmail] = useState("");
   const [errors, setErrors] = useState({}); // State to store validation errors
   const [otpError, setotpError] = useState(false);
-  const [loading, setloading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [orgError, setorgError] = useState(false);
   const [orgErrorMessage, setorgErrorMessage] = useState("");
 
@@ -45,12 +45,36 @@ function Organization() {
   }, []);
 
   // Handle View Click (Step 1 for Viewing Organization)
-  const handleViewClick = () => {
-    if (organizationName) {
-      alert(`Viewing Organization: ${organizationName}`);
-      navigate("/tracker");
-    } else {
-      alert("Please enter your organization name.");
+  const handleViewClick = async () => {
+    try {
+      setLoading(true);
+      setErrors({});
+      if (!organizationName.trim() || !organizationPass.trim()) {
+        setErrors({ organizationError: "Please Fill all the fields!" });
+        return;
+      }
+      const loginResponse = await axios.post(`/api/Account/Login`, {
+        UserName: organizationName,
+        Password: organizationPass,
+      });
+
+      let loginData = loginResponse.data;
+      if (typeof loginData === "string") {
+        loginData = JSON.parse(loginData);
+      }
+
+      if (loginData.access_token) {
+        localStorage.setItem("access_token", loginData.access_token);
+        alert("Login successful!");
+        navigate("/tracker");
+      } else {
+        alert("Login failed. Please try again.");
+      }
+    } catch (error) {
+      // console.error("Error viewing organization:", error);
+      setErrors({ organizationError: "Invalid Credentials!" });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -66,7 +90,7 @@ function Organization() {
       return;
     }
     setotpError(false);
-    setloading(true);
+    setLoading(true);
     try {
       // Step 1: Verify OTP
       const response = await axios.get(`/api/Account/VerifyEmailAddress`, {
@@ -102,18 +126,18 @@ function Organization() {
           localStorage.setItem("access_token", loginData.access_token);
           alert("Login successful!");
           setStep(3); // Move to next step (employee addition)
-          setloading(false);
+          setLoading(false);
         } else {
-          setloading(false);
+          setLoading(false);
           alert("Login failed. Please try again.");
         }
       } else {
-        setloading(false);
+        setLoading(false);
         setotpError(true);
         alert("Invalid OTP. Please try again.");
       }
     } catch (error) {
-      setloading(false);
+      setLoading(false);
       console.error("Error:", error);
       alert("Something went wrong. Please try again.");
     }
@@ -148,7 +172,7 @@ function Organization() {
     setErrors({});
     if (createMode && step === 1) {
       // Step 1: Create Organization API Call
-      setloading(true);
+      setLoading(true);
       setorgError(false);
       try {
         const response = await axios.post("/PostOrganization", {
@@ -170,7 +194,7 @@ function Organization() {
         console.error("Error creating organization:", error);
         setorgError(true);
       } finally {
-        setloading(false); // Set loading to false after the API call (success or failure)
+        setLoading(false); // Set loading to false after the API call (success or failure)
       }
     } else {
       setStep(step + 1);
@@ -257,6 +281,11 @@ function Organization() {
                 <h2 className="text-xl font-bold text-gray-700 mb-4">
                   Enter Your Organization Name
                 </h2>
+                {errors.organizationError && (
+                  <span className="text-red-500 text-sm">
+                    {errors.organizationError}
+                  </span>
+                )}
                 <input
                   type="text"
                   value={organizationName}
@@ -276,7 +305,7 @@ function Organization() {
                   onClick={handleViewClick}
                   className="w-full bg-green-500 hover:bg-green-700 text-white py-2 rounded-md mt-4 transition-all"
                 >
-                  View
+                  {loading ? "Opening Org..." : "View Organization"}
                 </button>
                 <p className="text-center text-sm text-gray-500 mt-4">
                   New to HireRocks?{" "}
@@ -293,7 +322,7 @@ function Organization() {
               <div className="w-[2px] bg-gray-300"></div>
 
               {/* Right Section */}
-              <div className="w-1/2 p-8 flex flex-col justify-center bg-gray-100">
+              <div className="w-1/2 h-full p-0 flex flex-col justify-center bg-gray-100">
                 <EmpLogin />
               </div>
             </div>
