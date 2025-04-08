@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   DatePicker,
   Select,
@@ -11,10 +11,12 @@ import {
 } from "antd";
 import { PlusOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
+import { useNavigate } from "react-router-dom";
 
 const { RangePicker } = DatePicker;
 
 function DashboardEmp() {
+  const navigate = useNavigate();
   const [selectedDates, setSelectedDates] = useState(null);
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [showResults, setShowResults] = useState(false);
@@ -28,6 +30,13 @@ function DashboardEmp() {
   const [newEmployeeEmail, setNewEmployeeEmail] = useState("");
 
   const screenshots = ["Screenshot 1", "Screenshot 2", "Screenshot 3"];
+
+  useEffect(() => {
+    const accessToken = localStorage.getItem("access_token");
+    if (!accessToken) {
+      navigate("/");
+    }
+  }, []);
 
   const handleSearch = () => {
     if (selectedDates) {
