@@ -33,7 +33,7 @@ function EmpLogin() {
       if (typeof loginData === "string") {
         loginData = JSON.parse(loginData);
       }
-
+      console.log(loginData);
       if (loginData.access_token) {
         localStorage.setItem("access_token", loginData.access_token);
         messageApi.success("Login successful!");
@@ -42,6 +42,10 @@ function EmpLogin() {
         message.error("Login Failed!, Please try again.");
       }
     } catch (err) {
+      if (err.response.data == "Your email not verified yet.") {
+        setShowOtpVerification(true);
+        return;
+      }
       console.error("Network Error:", err);
       setError("Login failed!. Please try again.");
     } finally {
