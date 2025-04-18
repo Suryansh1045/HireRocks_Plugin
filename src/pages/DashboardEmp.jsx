@@ -8,8 +8,11 @@ import {
   Skeleton,
   Modal,
   Input,
+  Menu,
+  Dropdown,
+  Avatar,
 } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, UserOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
 import { useNavigate } from "react-router-dom";
 
@@ -63,11 +66,38 @@ function DashboardEmp() {
     message.success("Employee added successfully!");
   };
 
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    navigate("/");
+  };
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="profile" onClick={() => navigate("/employeeProfile")}>
+        Profile
+      </Menu.Item>
+      <Menu.Item key="logout" onClick={handleLogout}>
+        Logout
+      </Menu.Item>
+    </Menu>
+  );
+
   return (
     <div className="max-w-7xl mx-auto min-h-[500px] bg-white text-gray-800 rounded-lg shadow-lg p-8">
-      <h1 className="text-3xl font-bold text-center mb-6">
-        📊 Tracker Details
-      </h1>
+      <div className="flex flex-col md:flex-row justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-center mb-6">
+          📊 Tracker Details
+        </h1>
+
+        <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+          <Avatar
+            icon={<UserOutlined />}
+            style={{ backgroundColor: "#32a8df" }}
+            className="cursor-pointer"
+            size="large"
+          />
+        </Dropdown>
+      </div>
 
       {/* Form Section */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">

@@ -179,7 +179,7 @@ function Organization() {
           Email: email,
           Password: organizationPass,
           OrganizationTitle: organizationName,
-          IsRegisterationSuccessFull: false,
+          IsRegisterationSuccessFull: true,
         });
         console.log(response);
         if (response.status == 200) {

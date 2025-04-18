@@ -8,8 +8,11 @@ import {
   Skeleton,
   Modal,
   Input,
+  Avatar,
+  Dropdown,
+  Menu,
 } from "antd";
-import { PlusOutlined } from "@ant-design/icons";
+import { PlusOutlined, UserOutlined } from "@ant-design/icons";
 import "antd/dist/reset.css";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
@@ -32,14 +35,29 @@ function Tracker() {
   const [newEmployeeLastName, setNewEmployeeLastName] = useState("");
   const [newEmployeeEmail, setNewEmployeeEmail] = useState("");
 
-  const screenshots = ["Screenshot 1", "Screenshot 2", "Screenshot 3"];
+  // --- Profile dropdown menu ---
+  const handleLogout = () => {
+    localStorage.removeItem("access_token");
+    navigate("/");
+  };
+
+  const menu = (
+    <Menu>
+      <Menu.Item key="profile" onClick={() => navigate("/orgProfile")}>
+        Profile
+      </Menu.Item>
+      <Menu.Item key="logout" onClick={handleLogout}>
+        Logout
+      </Menu.Item>
+    </Menu>
+  );
 
   useEffect(() => {
     const accessToken = localStorage.getItem("access_token");
     if (!accessToken) {
       navigate("/");
     }
-  }, []);
+  }, [navigate]);
 
   const handleSearch = () => {
     if (selectedEmployee && selectedDates) {
@@ -56,6 +74,7 @@ function Tracker() {
 
     if (!newEmployeeFirstName || !newEmployeeEmail || !newEmployeeLastName) {
       messageApi.error("Please enter both name and email!");
+      setLoading(false);
       return;
     }
 
@@ -74,22 +93,22 @@ function Tracker() {
         },
       };
 
-      const resposne = await axios.post("/api/Account/AddWorker", data, config);
-      const empData = await resposne.data;
+      const response = await axios.post("/api/Account/AddWorker", data, config);
+      const empData = response.data;
       if (empData.IsRegisterationSuccessFull) {
         messageApi.success("Employee added successfully!");
         setModalVisible(false);
-        setNewEmployeeFirstName("");
-        setNewEmployeeLastName("");
-        setNewEmployeeEmail("");
-        setEmployees([
-          ...employees,
+        setEmployees((prev) => [
+          ...prev,
           {
             firstName: newEmployeeFirstName,
             lastName: newEmployeeLastName,
             email: newEmployeeEmail,
           },
         ]);
+        setNewEmployeeFirstName("");
+        setNewEmployeeLastName("");
+        setNewEmployeeEmail("");
       }
     } catch (error) {
       messageApi.error("Error adding Employee!");
@@ -99,17 +118,28 @@ function Tracker() {
     }
   };
 
+  const screenshots = ["Screenshot 1", "Screenshot 2", "Screenshot 3"];
+
   return (
     <>
       {contextHolder}
       <div className="max-w-7xl mx-auto min-h-[500px] bg-white text-gray-800 rounded-lg shadow-lg p-8">
-        <h1 className="text-3xl font-bold text-center mb-6">
-          📊 Tracker Details
-        </h1>
+        {/* Header with title + profile dropdown */}
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">📊 Tracker Details</h1>
+          <Dropdown overlay={menu} trigger={["click"]} placement="bottomRight">
+            <Avatar
+              icon={<UserOutlined />}
+              style={{ backgroundColor: "#32a8df" }}
+              className="cursor-pointer"
+              size="large"
+            />
+          </Dropdown>
+        </div>
 
         {/* Form Section */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-          {/* Employee Selector with Search */}
+          {/* Employee Selector */}
           <div className="flex flex-col">
             <label className="font-medium mb-2">👤 Select Employee</label>
             <div className="flex gap-2">
@@ -127,10 +157,10 @@ function Tracker() {
                 {employees.map((employee, index) => (
                   <Select.Option
                     key={index}
-                    value={employee.email} // Store email as value
-                    label={employee.name} // Use name for filtering
+                    value={employee.email}
+                    label={`${employee.firstName} ${employee.lastName}`}
                   >
-                    {employee.name} ({employee.email}) {/* Display both */}
+                    {employee.firstName} {employee.lastName} ({employee.email})
                   </Select.Option>
                 ))}
               </Select>
@@ -197,18 +227,15 @@ function Tracker() {
             <h2 className="text-2xl font-semibold mb-4">📸 Screenshots</h2>
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
               {loading
-                ? screenshots.map((_, index) => (
+                ? screenshots.map((_, idx) => (
                     <Skeleton.Image
-                      key={index}
+                      key={idx}
                       active
                       className="h-[150px] w-full"
                     />
                   ))
-                : screenshots.map((screenshot, index) => (
-                    <Card
-                      key={index}
-                      className="text-center shadow-md h-[150px]"
-                    >
+                : screenshots.map((screenshot, idx) => (
+                    <Card key={idx} className="text-center shadow-md h-[150px]">
                       {screenshot}
                     </Card>
                   ))}

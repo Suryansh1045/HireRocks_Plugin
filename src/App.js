@@ -3,6 +3,8 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Organization from "./pages/Organisation";
 import DashboardEmp from "./pages/DashboardEmp";
 import Tracker from "./pages/Tracker";
+import EmployeeProfile from "./pages/EmployeeProfile";
+import OrgProfile from "./pages/OrgProfile";
 
 function App() {
   return (
@@ -11,7 +13,9 @@ function App() {
         <Routes>
           <Route path="/" element={<Organization />} />
           <Route path="/tracker" element={<Tracker />} />
-          <Route path="/dashboard" element={<DashboardEmp/>} />
+          <Route path="/dashboard" element={<DashboardEmp />} />
+          <Route path="/employeeProfile" element={<EmployeeProfile />} />
+          <Route path="/orgProfile" element={<OrgProfile />} />
         </Routes>
       </div>
     </Router>
